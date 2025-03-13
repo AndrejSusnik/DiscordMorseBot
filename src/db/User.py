@@ -1,10 +1,18 @@
 import db.db as db
+import enum
+
+class TimeMode(enum.Enum):
+    DAILY = 0
+    MOTHLY = 1
+    ALLTIME = 2
 
 class User:
     def __init__(self):
         self.id = None
         self.discord_name = None 
         self.display_name = None
+
+        self.attempts = None
 
     def __eq__(self, value):
         return self.id == value.id
@@ -67,14 +75,65 @@ class User:
             None
 
         return None
+
+    def get_stats(self, mode: TimeMode):
+        pass
+
+    @staticmethod
+    def get_ranking(mode: TimeMode):
+        # get all attempts made in specified mode
+        # group by user
+        # sum the score
+        # order by score
+        # return the display_name and score 
+
+        cur = db.conn.cursor()
+
+        if mode == TimeMode.ALLTIME:
+            sql = '''
+            SELECT u.discord_name, SUM(a.score) as score
+            FROM users u
+            JOIN attempts a ON u.id = a.user_id
+            WHERE a.passed = 1
+            GROUP BY u.id
+            ORDER BY score DESC
+            '''
+        elif mode == TimeMode.MOTHLY:
+            # get rankings in the current month
+            sql = '''
+            SELECT u.discord_name, SUM(a.score) as score
+            FROM users u
+            JOIN attempts a ON u.id = a.user_id
+            WHERE a.passed = 1 AND a.date > date('now', '-1 month')
+            GROUP BY u.id
+            ORDER BY score DESC
+            '''
+        elif mode == TimeMode.DAILY:
+            sql = '''
+            SELECT u.discord_name, SUM(a.score) as score
+            FROM users u
+            JOIN attempts a ON u.id = a.user_id
+            WHERE a.passed = 1 AND a.date > date('now', '-1 day')
+            GROUP BY u.id
+            ORDER BY score DESC
+            '''
+
+        cur.execute(sql)
+        ranking = cur.fetchall()
+        
+        cur.close()
+        return "\n".join([f'{r[0]}: {r[1]}' for r in ranking])
     
 
 if __name__ == "__main__":
-    usr = User.create('test', 'test')
-    usr2 = User.get_by_discord_name('test')
+    # usr = User.create('test', 'test')
+    # usr2 = User.get_by_discord_name('test')
 
-    print(usr)
-    print(usr2)
+    # print(usr)
+    # print(usr2)
 
-    print(usr == usr2)
+    # print(usr == usr2)
+    ranking = User.get_ranking(TimeMode.ALLTIME)
+    Ranking = User.get_ranking(TimeMode.MOTHLY)
+    ranking = User.get_ranking(TimeMode.DAILY)
 

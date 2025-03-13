@@ -4,7 +4,7 @@ from collections import defaultdict
 from random import randint
 import datetime
 from db.Attempt import Attempt
-from db.User import User
+from db.User import User, TimeMode
 
 
 class MorseBotCilent(discord.Client):
@@ -18,6 +18,8 @@ class MorseBotCilent(discord.Client):
             'morse': self.morse,
             'text': self.text,
             'get': self.get,
+            'rank': self.rank,
+            'stats': self.stats
         }
 
         self.user_cache: dict[str, tuple[str, datetime.datetime]] = dict()
@@ -30,6 +32,8 @@ class MorseBotCilent(discord.Client):
         !help - Prikaz pomoč
         !morse <text> - Pretvori besedilo v Morsejevo abecedo 
         !text <morse> - Pretvori besedo v Morsejevi abecedo v slovensko abecedo 
+        !rank [day/mon/overall] - Prikaz rezultatov za [dan/mesec/skupno]
+        !stats [day/mon/overall] - Prikaz statistike za [dan/mesec/skupno]
      """
 
     def morse(self, _, args):
@@ -54,6 +58,24 @@ class MorseBotCilent(discord.Client):
 
         return string
 
+    def rank(self, _, args):
+        mode = TimeMode.ALLTIME
+
+        if len(args) > 0:
+            if args[0] == 'day':
+                mode = TimeMode.DAILY
+            elif args[0] == 'mon':
+                mode = TimeMode.MOTHLY
+            elif args[0] == 'overall':
+                mode = TimeMode.ALLTIME
+
+        rankings_string = User.get_ranking(mode)
+
+        return rankings_string
+
+    def stats(self, msg, args):
+        return 'Not implemented'
+        
     def evaluate_message(self, msg: discord.Message):
         msg.content = msg.content.strip()
 
