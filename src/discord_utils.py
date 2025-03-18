@@ -74,7 +74,18 @@ class MorseBotCilent(discord.Client):
         return rankings_string
 
     def stats(self, msg, args):
-        return 'Not implemented'
+        mode = TimeMode.ALLTIME
+
+        if len(args) > 0:
+            if args[0] == 'day':
+                mode = TimeMode.DAILY
+            elif args[0] == 'mon':
+                mode = TimeMode.MOTHLY
+            elif args[0] == 'overall':
+                mode = TimeMode.ALLTIME
+            
+        user = User.get_by_discord_name(msg.author.name)
+        return user.get_stats(mode)
         
     def evaluate_message(self, msg: discord.Message):
         msg.content = msg.content.strip()
@@ -86,8 +97,7 @@ class MorseBotCilent(discord.Client):
 
         user = User.get_by_discord_name(msg.author.name)
         if not user:
-            user = User.create(msg.author.name)
-        
+            user = User.create(msg.author.name, msg.author.display_name)
 
         out_msg = ""
         if decoded == orig_msg:

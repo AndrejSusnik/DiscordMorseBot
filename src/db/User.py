@@ -77,7 +77,35 @@ class User:
         return None
 
     def get_stats(self, mode: TimeMode):
-        pass
+        # get staistics for the user
+        # statistics should include average time per character, error rate, ...
+        # depending on the mode, the statistics should be calculated for the specified time period
+        cur = db.conn.cursor()
+
+        if mode == TimeMode.ALLTIME:
+            sql = '''
+            SELECT AVG(a.attempt_time) as avg_time, AVG(a.score) as avg_score
+            FROM attempts a
+            WHERE a.user_id = ?
+            '''
+        elif mode == TimeMode.MOTHLY:
+            sql = '''
+            SELECT AVG(a.attempt_time) as avg_time, AVG(a.score) as avg_score
+            FROM attempts a
+            WHERE a.user_id = ? AND a.date > date('now', '-1 month')
+            '''
+        elif mode == TimeMode.DAILY:
+            sql = '''
+            SELECT AVG(a.attempt_time) as avg_time, AVG(a.score) as avg_score
+            FROM attempts a
+            WHERE a.user_id = ? AND a.date > date('now', '-1 day')
+            '''
+        
+        stats = cur.execute(sql, (self.id,)).fetchone()
+        cur.close()
+
+        stats_string = f'Average time per character: {stats[0]}\nAverage score: {stats[1]}'
+        return stats_string
 
     @staticmethod
     def get_ranking(mode: TimeMode):
@@ -91,7 +119,7 @@ class User:
 
         if mode == TimeMode.ALLTIME:
             sql = '''
-            SELECT u.discord_name, SUM(a.score) as score
+            SELECT u.display_name, SUM(a.score) as score
             FROM users u
             JOIN attempts a ON u.id = a.user_id
             WHERE a.passed = 1
