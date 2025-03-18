@@ -1,5 +1,6 @@
 import sqlite3
-
+from dotenv import load_dotenv
+import os
 
 def create_tables(conn):
     cur = conn.cursor()
@@ -26,7 +27,9 @@ def create_tables(conn):
 
 
 def connect():
-    conn = sqlite3.connect('db.sqlite')
+    load_dotenv()
+    print(os.getenv('DB_PATH'))
+    conn = sqlite3.connect(os.getenv('DB_PATH'))
 
     create_tables(conn)
 
