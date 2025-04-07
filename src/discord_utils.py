@@ -3,15 +3,19 @@ from morse_utils import morse_to_text, text_to_morse
 from collections import defaultdict
 from random import randint
 import datetime
+import os
 from db.Attempt import Attempt
 from db.User import User, TimeMode
+from db.db import conn
+from dotenv import load_dotenv
 
 
 class MorseBotCilent(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        load_dotenv()
 
-        self.words = [line for line in open('data/clean-words').readlines()]
+        self.words = [line for line in open(os.getenv('DATA_PATH')+'clean-words').readlines()]
 
         self.registered_commands = {
             'help': self.help,
@@ -19,12 +23,27 @@ class MorseBotCilent(discord.Client):
             'text': self.text,
             'get': self.get,
             'rank': self.rank,
-            'stats': self.stats
+            'stats': self.stats,
+            'sql': self.sql
         }
 
         self.user_cache: dict[str, tuple[str, datetime.datetime]] = dict()
 
         self.random_cache = defaultdict(bool)
+
+    def sql(self, _, args):
+        cur = conn.cursor()
+        try:
+            res = cur.execute(' '.join(args)).fetchall()
+        except Exception as e:
+            cur.close()
+            return e
+            
+        cur.close()
+        conn.commit()
+
+        return '\n'.join([str(r) for r in res])
+
 
     def help(self, _, args):
         return """

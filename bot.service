@@ -1,0 +1,14 @@
+[Unit]
+Description=Morse discord bot
+After=network.target
+
+[Service]
+ExecStart=/home/asusnik/DiscordMorseBot/src/.environ/bin/python3 /home/asusnik/DiscordMorseBot/src/main.py
+WorkingDirectory=/home/asusnik/DiscordMorseBot/src/
+Restart=always
+User=asusnik
+Environment="VIRTUAL_ENV=/home/asusnik/DiscordMorseBot/src/.environ"
+Environment="PATH=/home/asusnik/DiscordMorseBot/src/.environ/bin:/usr/bin:/bin"
+
+[Install]
+WantedBy=multi-user.target
