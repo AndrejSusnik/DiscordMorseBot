@@ -121,7 +121,19 @@ class MorseBotCilent(discord.Client):
         out_msg = ""
         if decoded == orig_msg:
             out_msg = f'Pravilno. Prejmeš {len(decoded)} točk. Čas: {attempt_time.total_seconds()}s'
-            Attempt.create(user.id, datetime.datetime.now(), attempt_time.total_seconds(), len(decoded), True)
+            time_per_char = attempt_time.total_seconds() / len(decoded)
+
+            score = len(decoded)
+
+            if time_per_char < 2:
+                score *= 1.2
+            elif time_per_char < 1.5:
+                score *= 1.5
+            elif time_per_char < 1:
+                score *= 2.0
+
+            out_msg = f'Pravilno. Prejmeš {score} točk. Čas: {attempt_time.total_seconds()}s'
+            Attempt.create(user.id, datetime.datetime.now(), attempt_time.total_seconds(), score, True)
         else:
             out_msg = f'Napačno:\n\tPričakovan odgovor:\t{self.user_cache[(msg.author.id, msg.channel.id)][0]}\n\tVaš odgovor:\t\t\t\t\t{decoded}'
             Attempt.create(user.id, datetime.datetime.now(), 0, 0, False)
